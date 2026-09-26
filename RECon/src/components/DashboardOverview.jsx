@@ -83,6 +83,12 @@ const ICON_PATHS = {
       <rect x="10" y="10" width="6" height="6" rx="1.2" stroke="currentColor" strokeWidth="1.4" />
     </>
   ),
+  menu: (
+    <path d="M2.5 5h15M2.5 10h15M2.5 15h15" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+  ),
+  close: (
+    <path d="M5 5l10 10M15 5 5 15" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+  ),
 };
 
 function Icon({ name, size = 18, viewBox = '0 0 20 20', className }) {
@@ -132,10 +138,10 @@ const TONE_STYLES = {
 
 const ACTIVITY_LOG = [
   { time: '12:43:10 PM', icon: 'wifi', tone: 'positive', title: 'WiFi Access Granted', detail: 'User ID #9921 connected via Cluster A', status: 'Success' },
-  { time: '12:41:05 PM', icon: 'alert', tone: 'negative', title: 'Unknown Deposit', detail: '45g PET bottle detected. Credited 15 mins.', status: 'Rejected' },
-  { time: '12:38:22 PM', icon: 'alert', tone: 'negative', title: 'Unknown Deposit', detail: 'Unknown material profile (Organic waste?).', status: 'Rejected' },
+  { time: '12:41:05 PM', icon: 'alert', tone: 'negative', title: 'Rejected Deposit', detail: '45g wet cardboard detected. Not eligible for credit.', status: 'Rejected' },
+  { time: '12:38:22 PM', icon: 'alert', tone: 'negative', title: 'Rejected Deposit', detail: 'Non-paper material detected in bin sensor.', status: 'Rejected' },
   { time: '12:35:45 PM', icon: 'wrench', tone: 'positive', title: 'System Maintenance', detail: 'Bin Unit B7 sensor recalibration complete.', status: 'Routine' },
-  { time: '12:32:11 PM', icon: 'alert', tone: 'negative', title: 'Unknown Deposit', detail: '18g Can detected. Credited 10 mins.', status: 'Rejected' },
+  { time: '12:32:11 PM', icon: 'alert', tone: 'negative', title: 'Rejected Deposit', detail: '18g shredded paper detected. Below minimum weight.', status: 'Rejected' },
   { time: '12:28:50 PM', icon: 'wifi', tone: 'positive', title: 'WiFi Access Granted', detail: 'User ID #9844 connected via Cluster B', status: 'Success' },
 ];
 
@@ -154,10 +160,20 @@ export default function DashboardOverview({
   const [activeNav, setActiveNav] = useState('dashboard');
   const [search, setSearch] = useState('');
   const [now, setNow] = useState(new Date());
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(id);
+  }, []);
+
+  // Close the mobile drawer automatically if the viewport grows back to desktop size
+  useEffect(() => {
+    function handleResize() {
+      if (window.innerWidth > 900) setSidebarOpen(false);
+    }
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   const lastUpdated = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit' });
@@ -165,11 +181,19 @@ export default function DashboardOverview({
   function handleNavClick(id) {
     setActiveNav(id);
     onNavigate?.(id);
+    setSidebarOpen(false); // close drawer after navigating on mobile
   }
 
   return (
     <div className="dashboard">
-      <aside className="sidebar">
+      {/* Overlay — only visible/clickable on mobile when the drawer is open */}
+      <div
+        className={`sidebar-overlay ${sidebarOpen ? 'sidebar-overlay--visible' : ''}`}
+        onClick={() => setSidebarOpen(false)}
+        aria-hidden="true"
+      />
+
+      <aside className={`sidebar ${sidebarOpen ? 'sidebar--open' : ''}`}>
         <div className="sidebar__top">
           <div className="sidebar__brand">
             {logoSrc ? (
@@ -184,6 +208,14 @@ export default function DashboardOverview({
               <p className="sidebar__subtitle">Smart Bin Network</p>
             </div>
           </div>
+          <button
+            type="button"
+            className="sidebar__close"
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Close menu"
+          >
+            <Icon name="close" size={20} />
+          </button>
         </div>
 
         <nav className="sidebar__nav" aria-label="Main navigation">
@@ -222,7 +254,17 @@ export default function DashboardOverview({
 
       <div className="dashboard__main">
         <header className="topbar">
-          <h1 className="topbar__title">Real-time Overview</h1>
+          <div className="topbar__left">
+            <button
+              type="button"
+              className="hamburger"
+              onClick={() => setSidebarOpen(true)}
+              aria-label="Open menu"
+            >
+              <Icon name="menu" size={20} />
+            </button>
+            <h1 className="topbar__title">Real-time Overview</h1>
+          </div>
           <div className="topbar__actions">
             <div className="search">
               <Icon name="search" size={16} className="search__icon" />

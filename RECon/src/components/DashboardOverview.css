@@ -42,7 +42,14 @@
   flex-direction: column;
   justify-content: space-between;
   overflow-y: auto;
-  z-index: 20;
+  z-index: 40;
+  transition: transform 0.25s ease;
+}
+
+.dashboard .sidebar__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .dashboard .sidebar__brand {
@@ -78,6 +85,17 @@
   font-size: 13px;
   color: var(--color-ink);
 }
+
+.dashboard .sidebar__close {
+  display: none;
+  border: none;
+  background: none;
+  color: var(--color-ink);
+  padding: 8px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+.dashboard .sidebar__close:hover { background: rgba(218, 232, 191, 0.3); }
 
 .dashboard .sidebar__nav {
   flex: 1;
@@ -163,6 +181,10 @@
 }
 .dashboard .sidebar__signout:hover { background: rgba(186, 26, 26, 0.06); }
 
+.dashboard .sidebar-overlay {
+  display: none;
+}
+
 /* ===== Main column ===== */
 .dashboard .dashboard__main {
   margin-left: 256px;
@@ -184,20 +206,41 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   z-index: 10;
+}
+.dashboard .topbar__left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
 }
 .dashboard .topbar__title {
   margin: 0;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 20px;
+  font-size: clamp(17px, 1.6vw, 24px);
   color: var(--color-accent);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .dashboard .topbar__actions {
   display: flex;
   align-items: center;
   gap: 20px;
 }
+
+.dashboard .hamburger {
+  display: none;
+  border: none;
+  background: none;
+  color: var(--color-accent);
+  padding: 8px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+.dashboard .hamburger:hover { background: rgba(218, 232, 191, 0.3); }
 
 .dashboard .search { position: relative; display: flex; align-items: center; }
 .dashboard .search__icon {
@@ -244,8 +287,12 @@
 }
 
 /* ===== Content ===== */
+/* max-width keeps lines/cards readable on ultrawide monitors & TVs instead of stretching edge-to-edge */
 .dashboard .content {
   flex: 1;
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
   padding: 32px 24px 64px;
   display: flex;
   flex-direction: column;
@@ -263,6 +310,7 @@
   border: 1px solid #DAE8BF;
   border-radius: 9999px;
   font-size: 14px;
+  flex-wrap: wrap;
 }
 .dashboard .status-pill__dot {
   width: 10px;
@@ -308,7 +356,7 @@
   margin: 0 0 16px;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 22px;
+  font-size: clamp(18px, 1.4vw, 22px);
   color: var(--color-ink-strong);
 }
 .dashboard .fill-row {
@@ -320,8 +368,8 @@
   flex-wrap: wrap;
 }
 .dashboard .fill-value { margin: 0; line-height: 1; font-family: var(--font-display); color: var(--color-accent); }
-.dashboard .fill-value__number { font-size: 44px; font-weight: 700; }
-.dashboard .fill-value__unit { font-size: 22px; font-weight: 600; margin-left: 2px; }
+.dashboard .fill-value__number { font-size: clamp(30px, 3vw, 48px); font-weight: 700; }
+.dashboard .fill-value__unit { font-size: clamp(16px, 1.6vw, 24px); font-weight: 600; margin-left: 2px; }
 .dashboard .fill-capacity { margin: 0; font-size: 14px; color: var(--color-ink); }
 .dashboard .progress-track {
   height: 10px;
@@ -362,7 +410,7 @@
   margin: 0;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 36px;
+  font-size: clamp(28px, 2.6vw, 40px);
   line-height: 1.2;
 }
 .dashboard .stat-card__sub {
@@ -407,7 +455,7 @@
   margin: 0;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 22px;
+  font-size: clamp(18px, 1.4vw, 22px);
   color: var(--color-ink-strong);
 }
 .dashboard .button-secondary {
@@ -428,7 +476,10 @@
   backdrop-filter: blur(6px);
   overflow: hidden;
 }
-.dashboard .activity-table-wrap { overflow-x: auto; }
+.dashboard .activity-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
 .dashboard .activity-table {
   width: 100%;
   border-collapse: collapse;
@@ -519,27 +570,78 @@
 .dashboard .fab:focus-visible .fab__tooltip { opacity: 1; }
 
 /* ===== Responsive ===== */
+
+/* Tablet: tighten spacing slightly before the drawer breakpoint kicks in */
+@media (max-width: 1200px) {
+  .dashboard .content { padding: 28px 20px 56px; }
+}
+
+/* Mobile / small tablet: sidebar becomes an off-canvas drawer */
 @media (max-width: 900px) {
   .dashboard { flex-direction: column; }
+
   .dashboard .sidebar {
-    position: static;
-    width: 100%;
-    height: auto;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
+    width: 280px;
+    max-width: 82vw;
+    transform: translateX(-100%);
+    box-shadow: 0 0 0 rgba(0,0,0,0);
   }
-  .dashboard .sidebar__nav { flex-direction: row; flex-wrap: wrap; padding-top: 0; }
-  .dashboard .sidebar__bottom { flex-direction: row; align-items: center; }
+  .dashboard .sidebar--open {
+    transform: translateX(0);
+    box-shadow: 8px 0 24px rgba(0, 0, 0, 0.15);
+  }
+  .dashboard .sidebar__close { display: flex; }
+
+  .dashboard .sidebar-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 20, 10, 0.4);
+    z-index: 30;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  .dashboard .sidebar-overlay--visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
   .dashboard .dashboard__main { margin-left: 0; }
+  .dashboard .hamburger { display: flex; }
 }
 
 @media (max-width: 600px) {
-  .dashboard .search__input { width: 140px; }
-  .dashboard .topbar { padding: 0 16px; }
-  .dashboard .content { padding: 24px 16px 48px; }
+  .dashboard .topbar { padding: 0 12px; gap: 8px; }
+  .dashboard .search__input { width: 110px; padding-left: 34px; }
+  .dashboard .content { padding: 20px 12px 48px; gap: 24px; }
+  .dashboard .stat-grid { grid-template-columns: 1fr; }
+  .dashboard .stat-card { padding: 18px; }
+  .dashboard .activity-table th,
+  .dashboard .activity-table td { padding: 12px 14px; }
+  .dashboard .fab { right: 16px; bottom: 16px; width: 48px; height: 48px; }
+}
+
+@media (max-width: 360px) {
+  .dashboard .search__input { width: 80px; }
+  .dashboard .status-pill { font-size: 12px; padding: 6px 12px; }
+}
+
+/* Large desktop / TV: widen the sidebar slightly and give content more breathing room */
+@media (min-width: 1600px) {
+  .dashboard .sidebar { width: 288px; }
+  .dashboard .dashboard__main { margin-left: 288px; }
+  .dashboard .content { padding: 40px 40px 72px; gap: 40px; }
+}
+
+/* Very large TV / 4K displays: scale everything up so it's readable from a distance */
+@media (min-width: 2200px) {
+  .dashboard { font-size: 18px; }
+  .dashboard .content { max-width: 1900px; padding: 56px 56px 88px; }
+  .dashboard .sidebar { width: 320px; }
+  .dashboard .dashboard__main { margin-left: 320px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .dashboard .progress-fill, .dashboard .fab__tooltip { transition: none; }
+  .dashboard .progress-fill, .dashboard .fab__tooltip, .dashboard .sidebar, .dashboard .sidebar-overlay { transition: none; }
 }
