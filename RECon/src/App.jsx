@@ -7,6 +7,9 @@ import WiFiSessions from './components/WiFiSessionLogs';
 import BinManagement from './components/BinManagement';
 import SystemSettings from './components/SystemSettings';
 import logo from './assets/RECon-Logo.png';
+import MobileDashboard from './mobile/MobileDashboard';
+import MobileDeposit from './mobile/MobileDeposit';
+import MobileSession from './mobile/MobileSession';
 
 function LoginPage({ onLoginSuccess, logoSrc }) {
   const navigate = useNavigate();
@@ -182,6 +185,13 @@ export default function App() {
 
   return (
     <Routes>
+      {/* ---------- mobile / student side: public, no login ---------- */}
+      <Route path="/m" element={<MobileDashboard />} />
+      <Route path="/m/bin/:binId" element={<MobileDashboard />} />
+      <Route path="/m/deposit" element={<MobileDeposit />} />
+      <Route path="/m/session" element={<MobileSession />} />
+
+      {/* ---------- admin side ---------- */}
       <Route
         path="/login"
         element={
